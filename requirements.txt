@@ -2,3 +2,5 @@ flask>=3.0
 flask-cors>=6.0
 requests>=2.31
 instagrapi>=2.2
+python-dotenv>=1.0
+gunicorn>=21.0

@@ -10,6 +10,9 @@ from flask_cors import CORS
 from datetime import datetime
 import random
 from instagrapi import Client
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- CONFIGURACIÓN DE LOGS ---
 logging.basicConfig(
@@ -20,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger("IGBotManager")
 
 # --- CONFIGURACIÓN ---
-LARAVEL_BASE_URL = os.getenv("LARAVEL_BASE_URL", "http://localhost:5500/api/instagram")
+LARAVEL_BASE_URL = os.getenv("LARAVEL_BASE_URL", "https://wappy.up.railway.app/api/instagram").rstrip('/')
 LARAVEL_API_URL = f"{LARAVEL_BASE_URL}/webhook"
 HTTP_PORT = int(os.getenv("PORT", 5000))
 IG_PROXY = os.getenv("IG_PROXY") # Optional: residential proxy for blocked IPs
