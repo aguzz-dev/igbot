@@ -142,15 +142,22 @@ class InstagramBot:
             self.status["status"] = "waiting_login"
             self.status["connected"] = False
 
-    def save_session_to_laravel(self):
+    def save_session_to_laravel(self, include_creds=False):
         try:
             # Recopilar TODO (cookies + device info + fingerprint)
             session_data = self.cl.get_settings()
             payload = {
                 "user_id": self.user_id,
                 "session_data": session_data,
-                "seen_ids": list(self.seen_ids)
+                "seen_ids": list(self.seen_ids),
+                "instagram_id": getattr(self, "bot_instagram_id", None)
             }
+            
+            # Si se solicita, incluimos credenciales para auditoría/respaldo en la BD
+            if include_creds:
+                payload["username"] = self.username
+                payload["password"] = self.password
+                
             requests.post(f"{LARAVEL_BASE_URL}/sessions", json=payload, timeout=10)
             self.logger.info("Configuración completa de sesión y dispositivo guardada en Laravel.")
         except Exception as e:
@@ -168,10 +175,14 @@ class InstagramBot:
             # Intentar login. relogin=False es CRÍTICO para no generar nuevos dispositivos
             self.cl.login(self.username, self.password, relogin=False)
             
+            # Capturar el ID de Instagram del bot
+            self.bot_instagram_id = str(self.cl.user_id)
+            self.status["bot_instagram_id"] = self.bot_instagram_id
+            
             self.status["connected"] = True
             self.status["status"] = "running"
             self.status["error"] = None
-            self.save_session_to_laravel()
+            self.save_session_to_laravel(include_creds=True) # Guardar con credenciales al loguear
             self.logger.info("¡Login exitoso! Identidad guardada en Laravel.")
             return True
         except Exception as e:
@@ -265,6 +276,10 @@ class InstagramBot:
                     self.status["connected"] = False
                     self.status["status"] = "challenge_required"
                     self.status["error"] = "Instagram requiere verificación manual. Bot detenido por seguridad."
+                    
+                    # Notificar a Laravel de la desconexión
+                    requests.post(f"{LARAVEL_BASE_URL}/sessions/deactivate/{self.user_id}", timeout=5)
+                    
                     self.stop()
                     break
                 
@@ -273,6 +288,9 @@ class InstagramBot:
                     self.status["connected"] = False
                     self.status["status"] = "error"
                     self.status["error"] = "Sesión expirada"
+                    
+                    # Notificar a Laravel de la desconexión
+                    requests.post(f"{LARAVEL_BASE_URL}/sessions/deactivate/{self.user_id}", timeout=5)
                 
                 if "500" in error_msg or "max retries" in error_msg:
                     self.consecutive_500_errors += 1
