@@ -25,12 +25,12 @@ logger = logging.getLogger("IGBotManager")
 # --- CONFIGURACIÓN ---
 LARAVEL_BASE_URL = os.getenv("LARAVEL_BASE_URL", "https://wappy.up.railway.app/api/instagram").rstrip('/')
 LARAVEL_API_URL = f"{LARAVEL_BASE_URL}/webhook"
-HTTP_PORT = int(os.getenv("PORT", 5000))
+HTTP_PORT = int(os.getenv("PORT", 6500))
 IG_PROXY = os.getenv("IG_PROXY") # Optional: residential proxy for blocked IPs
 
-# Intervalos de chequeo (Optimizados para comportamiento humano)
-DIRECT_POLL_SECONDS = int(os.getenv("DIRECT_POLL_SECONDS", 20))  # 20 segundos para DMs
-COMMENTS_POLL_EVERY_CYCLES = int(os.getenv("COMMENTS_POLL_EVERY_CYCLES", 3))  # Cada 3 ciclos (1 minuto total)
+# Intervalos de chequeo (Optimizados para comportamiento humano, pero más frecuentes por pedido del usuario)
+DIRECT_POLL_SECONDS = int(os.getenv("DIRECT_POLL_SECONDS", 5))  # Reducido a 5 segundos para DMs
+COMMENTS_POLL_EVERY_CYCLES = int(os.getenv("COMMENTS_POLL_EVERY_CYCLES", 2))  # Cada 2 ciclos (aprox 10 seg)
 
 # --- UTILIDADES ---
 class RateLimiter:
